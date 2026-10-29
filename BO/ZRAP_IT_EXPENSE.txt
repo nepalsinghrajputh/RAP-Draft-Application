@@ -1,0 +1,31 @@
+managed implementation in class zbp_rap_it_expense unique;
+strict ( 2 );
+with draft;
+
+define behavior for ZRAP_IT_EXPENSE alias Expense
+persistent table zrapt_expense
+draft table zrapt_expensed
+lock master total etag last_changed_at
+authorization master ( instance )
+etag master last_changed_at
+{
+  create;
+  update;
+  delete;
+  field ( readonly ) uuid,expense_id,expense_date;
+  field ( numbering : managed ) uuid;
+  validation amount on save { create; update; }
+  validation todaysExpense on save { create; update; }
+  determination Desc on modify { field expense_type; }
+  determination defaultDate on modify { create; }
+  side effects
+  {
+    field expense_type affects field expense_description;
+  }
+  draft action Activate optimized;
+  draft action Discard;
+  draft action Edit;
+  draft action Resume;
+  draft determine action Prepare;
+
+}

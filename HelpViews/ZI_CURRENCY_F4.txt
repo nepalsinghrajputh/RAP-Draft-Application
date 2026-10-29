@@ -1,0 +1,10 @@
+@AbapCatalog.viewEnhancementCategory: [#NONE]
+@AccessControl.authorizationCheck: #NOT_REQUIRED
+@EndUserText.label: 'Currency F4 Help'
+@Metadata.ignorePropagatedAnnotations: true
+define view entity ZI_CURRENCY_f4 as select from I_Currency
+{
+    key Currency,
+    /* Associations */
+ _Text[ Language = $session.system_language ].CurrencyName
+}

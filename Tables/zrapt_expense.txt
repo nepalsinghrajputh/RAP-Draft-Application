@@ -1,0 +1,24 @@
+@EndUserText.label : 'Expense Table'
+@AbapCatalog.enhancement.category : #NOT_EXTENSIBLE
+@AbapCatalog.tableCategory : #TRANSPARENT
+@AbapCatalog.deliveryClass : #A
+@AbapCatalog.dataMaintenance : #RESTRICTED
+define table zrapt_expense {
+
+  key mandt             : abap.clnt not null;
+  key uuid              : sysuuid_x16 not null;
+  expense_id            : abap.numc(10);
+  expense_date          : abap.dats;
+  expense_type          : abap.char(20);
+  @Semantics.amount.currencyCode : 'zrapt_expense.currency_code'
+  expense_amount        : dmbtr;
+  currency_code         : waers;
+  expense_description   : abap.string(256);
+  name                  : abap.char(50);
+  local_created_by      : abp_creation_user;
+  local_created_at      : abp_creation_tstmpl;
+  local_last_changed_by : abp_locinst_lastchange_user;
+  local_last_changed_at : abp_locinst_lastchange_tstmpl;
+  last_changed_at       : abp_lastchange_tstmpl;
+
+}

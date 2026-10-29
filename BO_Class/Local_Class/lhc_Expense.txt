@@ -1,0 +1,152 @@
+CLASS lhc_Expense DEFINITION INHERITING FROM cl_abap_behavior_handler.
+  PRIVATE SECTION.
+
+    METHODS get_instance_authorizations FOR INSTANCE AUTHORIZATION
+      IMPORTING keys REQUEST requested_authorizations FOR Expense RESULT result.
+
+    METHODS defaultDate FOR DETERMINE ON MODIFY
+      IMPORTING keys FOR Expense~defaultDate.
+
+    METHODS Desc FOR DETERMINE ON MODIFY
+      IMPORTING keys FOR Expense~Desc.
+
+    METHODS amount FOR VALIDATE ON SAVE
+      IMPORTING keys FOR Expense~amount.
+
+    METHODS todaysExpense FOR VALIDATE ON SAVE
+      IMPORTING keys FOR Expense~todaysExpense.
+
+ENDCLASS.
+
+CLASS lhc_Expense IMPLEMENTATION.
+
+  METHOD get_instance_authorizations.
+  ENDMETHOD.
+
+  METHOD defaultDate.
+    DATA(lv_system_date) = cl_abap_context_info=>get_system_date( ).
+    "Reading Current Entity data ---------->
+    READ ENTITIES OF zrap_it_expense IN LOCAL MODE
+    ENTITY Expense FIELDS ( expense_id expense_date )
+    WITH CORRESPONDING #( keys )
+    RESULT DATA(lt_date).
+    "Update File Status
+    LOOP AT lt_date INTO DATA(ls_user).
+      TRY.
+*      DATA lv_number TYPE zrap_expense_db-expense_id.
+          cl_numberrange_runtime=>number_get(
+            EXPORTING
+              nr_range_nr = '01'
+              object      = 'ZNO_EXP_ID'
+              quantity    = 1
+            IMPORTING
+              number      = DATA(lv_number)
+              returncode  = DATA(lv_returncode)
+          ).
+*          CATCH cx_number_range_error INTO DATA(lx_number_range_error).
+        CATCH cx_nr_object_not_found INTO DATA(lx_nr_object_not_found).
+        CATCH cx_number_ranges INTO DATA(lo_number_ranges).
+      ENDTRY.
+      DATA lv_expense_id type zrap_expense_db-expense_id.
+      lv_expense_id = |{ lv_number ALPHA = OUT }|.
+      MODIFY ENTITIES OF zrap_it_expense IN LOCAL MODE
+      ENTITY Expense
+      UPDATE FIELDS ( expense_id expense_date )
+      WITH VALUE #( (
+                    %tky                  = ls_user-%tky
+                    %data-expense_date    = lv_system_date
+                    %data-expense_id      = lv_expense_id
+                    %control-expense_date = if_abap_behv=>mk-on
+                    %control-expense_id   = if_abap_behv=>mk-on
+                    ) ).
+    ENDLOOP.
+  ENDMETHOD.
+
+  METHOD Desc.
+    "Reading Current Entity data ---------->
+    READ ENTITIES OF zrap_it_expense IN LOCAL MODE
+    ENTITY Expense FIELDS ( expense_type )
+    WITH CORRESPONDING #( keys )
+    RESULT DATA(lt_date).
+    "Update File Status
+    LOOP AT lt_date INTO DATA(ls_user).
+      MODIFY ENTITIES OF zrap_it_expense IN LOCAL MODE
+      ENTITY Expense
+      UPDATE FIELDS ( expense_description )
+      WITH VALUE #( (
+                    %tky                         = ls_user-%tky
+                    %data-expense_description    = |{ ls_user-expense_type }-|
+                    %control-expense_description = if_abap_behv=>mk-on
+                    ) ).
+    ENDLOOP.
+  ENDMETHOD.
+
+  METHOD amount.
+    READ ENTITIES OF zrap_it_expense IN LOCAL MODE
+    ENTITY Expense
+    FIELDS ( Expense_Amount )
+    WITH CORRESPONDING #( keys )
+    RESULT DATA(lt_expenses).
+
+    LOOP AT lt_expenses INTO DATA(ls_expense).
+
+      IF ls_expense-Expense_Amount < 100.
+
+        APPEND VALUE #(
+          %tky = ls_expense-%tky
+        ) TO failed-expense.
+
+        APPEND VALUE #(
+          %tky                    = ls_expense-%tky
+          %element-Expense_Amount = if_abap_behv=>mk-on
+          %msg                    = new_message_with_text(
+          severity = if_abap_behv_message=>severity-error
+          text     = 'Expense amount must be at least 100.'
+          )
+        ) TO reported-expense.
+
+      ENDIF.
+
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD todaysExpense.
+    DATA(lv_date) = cl_abap_context_info=>get_system_date( ).
+    "Reading Data of Todays created records from DB
+    SELECT FROM zrap_expense_db
+    FIELDS SUM( Expense_Amount )
+    WHERE Expense_Date = @lv_date
+    INTO @DATA(lv_total_expense).
+
+    "Current Instanse Data ---> Create
+    READ ENTITIES OF zrap_it_expense IN LOCAL MODE
+    ENTITY Expense
+    FIELDS ( Expense_Amount )
+    WITH CORRESPONDING #( keys )
+    RESULT DATA(lt_expenses).
+    IF lt_expenses IS NOT INITIAL.
+      READ TABLE lt_expenses ASSIGNING FIELD-SYMBOL(<lfs_exp_amt>) INDEX 1.
+      IF sy-subrc = 0.
+        lv_total_expense = <lfs_exp_amt>-Expense_Amount + lv_total_expense .
+      ENDIF.
+    ENDIF.
+    "Need to add the validation if amount is greater than 10000 it should todays expense should not be greater than 10000
+    IF lv_total_expense > 10000.
+
+      APPEND VALUE #(
+      %element-Expense_amount = if_abap_behv=>mk-on
+      %msg                    = new_message_with_text(
+      severity = if_abap_behv_message=>severity-error
+      text     = 'Total expense for today cannot exceed 10000.'
+      )
+      ) TO reported-expense.
+
+      APPEND VALUE #(
+        %tky = keys[ 1 ]-%tky
+      ) TO failed-expense.
+
+    ENDIF.
+  ENDMETHOD.
+
+ENDCLASS.

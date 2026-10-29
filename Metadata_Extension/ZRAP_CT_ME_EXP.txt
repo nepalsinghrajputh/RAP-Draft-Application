@@ -1,0 +1,105 @@
+@Metadata.layer: #CORE
+@UI.headerInfo : {
+ typeName: 'Expense',
+ typeNamePlural: 'Expenses',
+ title: {
+        type: #STANDARD,
+        label: 'Expense ID >',
+        value: 'expense_id' // this will display as Header title
+    }}
+
+@UI.presentationVariant: [{
+    sortOrder: [
+        {
+            by: 'expense_date',
+            direction: #DESC
+        },
+        {
+            by: 'expense_id',
+            direction: #DESC
+        }
+    ],
+    groupBy: [ 'expense_date' ],
+    total: [ 'expense_amount' ],
+    visualizations: [{
+        type: #AS_LINEITEM
+    }]
+}]
+annotate entity ZRAP_CT_EXPENSE
+    with 
+{
+@UI.hidden: true
+uuid;
+@UI.facet: [
+    {
+    purpose: #STANDARD,
+    type: #IDENTIFICATION_REFERENCE ,
+    label: 'Expene Details',
+    position: 10
+    }]
+  @UI:{lineItem: [{position: 10,importance: #HIGH , label: 'Expense ID' } ],
+  identification: [{ position: 10 , label: 'Expense ID'}]
+  }
+  @EndUserText.label: 'Expense ID'
+  @UI.selectionField: [{ position: 10 }]
+  expense_id;
+  @UI:{lineItem: [{position: 20,importance: #HIGH , label: 'Expense Date' } ],
+  identification: [{ position: 20 , label: 'Expense Date'}]
+  }
+  @EndUserText.label: 'Expense Date'
+  @UI.selectionField: [{ position: 20 }]
+  
+  expense_date;
+  @UI:{lineItem: [{position: 30,importance: #HIGH , label: 'Expense Type' } ],
+  identification: [{ position: 30 , label: 'Expense Type'}]
+  }
+  @EndUserText.label: 'Expense Type'
+    @Consumption.valueHelpDefinition: [{
+entity: { name: 'ZI_EXPENSE_TYPE_F4', element: 'ExpenseType' },
+
+additionalBinding: [{
+    localElement: 'expense_type',    // The field in your current (Projection) view
+    element:      'ExpenseType',   // The matching field inside the Value Help view
+    usage:        #FILTER_AND_RESULT   // Defines the direction of data flow
+  }]
+  }]
+  expense_type;
+  @UI:{lineItem: [{position: 40,importance: #HIGH , label: 'Expense Amount' } ],
+  identification: [{ position: 40 , label: 'Expense Amount'}]
+  }
+  @EndUserText.label: 'Expense Amount'
+  expense_amount;
+  @UI:{lineItem: [{position: 50,importance: #HIGH , label: 'Currency' } ],
+  identification: [{ position: 50 , label: 'Currency'}]
+  }
+  @EndUserText.label: 'Currency'
+  @Consumption.valueHelpDefinition: [{
+  entity: { name: 'ZI_CURRENCY_f4', element: 'Currency' },
+
+  additionalBinding: [{
+      localElement: 'currency_code',    // The field in your current (Projection) view
+      element:      'Currency',   // The matching field inside the Value Help view
+      usage:        #FILTER_AND_RESULT // Defines the direction of data flow
+  }]
+  }]
+  currency_code;
+  @UI:{lineItem: [{position: 60,importance: #HIGH , label: 'Expense Desc' } ],
+  identification: [{ position: 60 , label: 'Expense Desc'}]
+  }
+  @EndUserText.label: 'Expense Desc'
+  expense_description;
+  @UI:{lineItem: [{position: 70,importance: #HIGH , label: 'Expense Name' } ],
+  identification: [{ position: 70 , label: 'Expense Name'}]
+  }
+  @EndUserText.label: 'Expense Name'
+    @Consumption.valueHelpDefinition: [{
+  entity: { name: 'ZI_PERSON_F4', element: 'Name' },
+
+  additionalBinding: [{
+    localElement: 'name',    // The field in your current (Projection) view
+    element:      'Name',   // The matching field inside the Value Help view
+    usage:        #FILTER_AND_RESULT // Defines the direction of data flow
+  }]
+  }]
+  name; 
+}

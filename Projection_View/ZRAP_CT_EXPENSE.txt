@@ -1,0 +1,23 @@
+@AccessControl.authorizationCheck: #NOT_REQUIRED
+@EndUserText.label: 'Composition View'
+@Metadata.ignorePropagatedAnnotations: true
+@Metadata.allowExtensions: true
+define root view entity ZRAP_CT_EXPENSE
+  provider contract transactional_query
+  as projection on ZRAP_IT_EXPENSE
+{
+  key uuid,
+      expense_id,
+      expense_date,
+      expense_type,
+      @Semantics.amount.currencyCode: 'currency_code'
+      expense_amount,
+      currency_code,
+      expense_description,
+      name,
+      local_created_by,
+      local_created_at,
+      local_last_changed_by,
+      local_last_changed_at,
+      last_changed_at
+}

@@ -1,0 +1,4 @@
+@EndUserText.label: 'Service Defination for Expense'
+define service ZSD_RAP_EXPENSE {
+  expose ZRAP_CT_EXPENSE   as Expense;
+}

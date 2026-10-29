@@ -1,0 +1,5 @@
+CLASS zbp_rap_it_expense DEFINITION PUBLIC ABSTRACT FINAL FOR BEHAVIOR OF zrap_it_expense.
+ENDCLASS.
+
+CLASS zbp_rap_it_expense IMPLEMENTATION.
+ENDCLASS.
